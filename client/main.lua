@@ -5,27 +5,23 @@ local playerPed = PlayerPedId()
 Citizen.CreateThread(function()
     while true do
         Citizen.Wait(0)
-    local currentTick = GetGameTimer()
+        local currentTick = GetGameTimer()
         if not IsPedDeadOrDying(playerPed, false) then
             local vehicle = GetVehiclePedIsUsing(playerPed)
             if vehicle and GetPedInVehicleSeat(vehicle, -1) == playerPed and IsVehicleOnAllWheels(vehicle) and not IsPedInFlyingVehicle(playerPed) then
                 local angle, velocity = Angle(vehicle)
-                local tempBool = currentTick - (idleTime or 0) < 1850
-                if not tempBool and score ~= 0 then
+                local isIdle = currentTick - (idleTime or 0) < 1850
+                if not isIdle and score ~= 0 then
                     local previousScore = CalculateBonus(score)
                     total = total + previousScore
                     cash = math.floor(total)
                     local player = GetPlayerServerId(PlayerId())
                     TriggerServerEvent("dei_drift:GiveCash", player, cash)
-                    score = 0
-					total = 0
+                    score, total = 0, 0
                 end
                 if angle ~= 0 then
-                    if score == 0 then
-                        local drifting = true
-                        local driftTime = currentTick
-                    end
-                    score = tempBool and score + math.floor(angle * velocity * mult) or math.floor(angle * velocity * mult)
+                    local scoreIncrement = math.floor(angle * velocity * mult)
+                    score = isIdle and score + scoreIncrement or scoreIncrement
                     screenScore = CalculateBonus(score)
                     idleTime = currentTick
                 end
